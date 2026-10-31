@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>For You</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Great+Vibes&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --pink: #f4c7d3;
+      --pink-deep: #e8a1b5;
+      --pink-soft: #fbe6ec;
+      --grey: #8a8590;
+      --grey-dark: #55505a;
+      --grey-light: #e6e3e8;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      color: var(--grey-dark);
+    }
+
+    .bg {
+      position: fixed;
+      inset: -30px;
+      background: url('background.jpg') center / cover no-repeat;
+      filter: blur(3px);
+      z-index: -3;
+    }
+
+    .bg-tint {
+      position: fixed;
+      inset: 0;
+      background: linear-gradient(160deg, rgba(244,199,211,0.22), rgba(200,196,206,0.18));
+      z-index: -2;
+    }
+
+    .stage {
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .card {
+      width: min(560px, 100%);
+      padding: 52px 36px;
+      text-align: center;
+      background: rgba(255, 255, 255, 0.42);
+      backdrop-filter: blur(3px);
+      -webkit-backdrop-filter: blur(3px);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: 28px;
+      box-shadow: 0 20px 60px rgba(120, 100, 115, 0.25);
+      animation: fadeUp 1.2s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .script {
+      font-family: 'Great Vibes', cursive;
+      font-size: clamp(2.4rem, 8vw, 3.6rem);
+      color: var(--pink-deep);
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+
+    h1 {
+      font-weight: 500;
+      font-style: italic;
+      font-size: clamp(1.8rem, 6vw, 2.5rem);
+      letter-spacing: 0.5px;
+      color: var(--grey-dark);
+      margin-bottom: 34px;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 22px;
+      justify-content: center;
+      align-items: center;
+      min-height: 60px;
+    }
+
+    button {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 1.35rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+      padding: 12px 38px;
+      border-radius: 50px;
+      border: none;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, left 0.25s ease, top 0.25s ease;
+    }
+
+    #yes {
+      background: linear-gradient(135deg, var(--pink-deep), var(--pink));
+      color: #fff;
+      box-shadow: 0 8px 20px rgba(232, 161, 181, 0.55);
+    }
+
+    #yes:hover { transform: scale(1.08); }
+
+    #no {
+      background: var(--grey-light);
+      color: var(--grey);
+      box-shadow: 0 6px 14px rgba(100, 95, 105, 0.2);
+      z-index: 10;
+    }
+
+    #result { display: none; }
+
+    #typed {
+      font-size: clamp(1.4rem, 4.6vw, 1.9rem);
+      line-height: 1.7;
+      font-style: italic;
+      color: var(--grey-dark);
+      min-height: 9em;
+    }
+
+    #typed .name {
+      font-family: 'Great Vibes', cursive;
+      font-style: normal;
+      font-size: 1.35em;
+      color: var(--pink-deep);
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 2px;
+      height: 1.1em;
+      background: var(--pink-deep);
+      margin-left: 3px;
+      vertical-align: text-bottom;
+      animation: blink 0.9s steps(1) infinite;
+    }
+
+    @keyframes blink { 50% { opacity: 0; } }
+
+    .heart {
+      position: fixed;
+      bottom: -40px;
+      color: var(--pink-deep);
+      opacity: 0.8;
+      pointer-events: none;
+      z-index: 5;
+      animation: floatUp linear forwards;
+    }
+
+    @keyframes floatUp {
+      to { transform: translateY(-110vh) rotate(25deg); opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="bg"></div>
+  <div class="bg-tint"></div>
+
+  <div class="stage">
+    <div class="card">
+      <div id="question">
+        <div class="script">Ame Mongwegi,</div>
+        <h1>Will you be my girlfriend?</h1>
+        <div class="buttons" id="buttons">
+          <button id="yes">Yes</button>
+          <button id="no">No</button>
+        </div>
+      </div>
+
+      <div id="result">
+        <p id="typed"></p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const yes = document.getElementById('yes');
+    const no = document.getElementById('no');
+    const question = document.getElementById('question');
+    const result = document.getElementById('result');
+    const typed = document.getElementById('typed');
+
+    function moveNo() {
+      no.style.position = 'fixed';
+
+      const pad = 12;
+      const maxX = window.innerWidth - no.offsetWidth - pad;
+      const maxY = window.innerHeight - no.offsetHeight - pad;
+
+      let x, y, tries = 0;
+      do {
+        x = pad + Math.random() * Math.max(0, maxX - pad);
+        y = pad + Math.random() * Math.max(0, maxY - pad);
+        tries++;
+
+        const yr = yes.getBoundingClientRect();
+        const overlap = x < yr.right + 20 && x + no.offsetWidth > yr.left - 20 &&
+          y < yr.bottom + 20 && y + no.offsetHeight > yr.top - 20;
+
+        if (!overlap) break;
+      } while (tries < 25);
+
+      no.style.left = x + 'px';
+      no.style.top = y + 'px';
+    }
+
+    ['mouseover', 'pointerdown', 'touchstart', 'focus', 'click'].forEach(evt => {
+      no.addEventListener(evt, e => {
+        e.preventDefault();
+        moveNo();
+      }, { passive: false });
+    });
+
+    window.addEventListener('resize', () => {
+      if (no.style.position === 'fixed') moveNo();
+    });
+
+    const message = [
+      { text: 'I love you ' },
+      { text: 'Ame Mongwegi', cls: 'name' },
+      { text: ' more than you can imagine. I just wanted to say thank you, for being there.' }
+    ];
+
+    function typeMessage() {
+      const cursor = document.createElement('span');
+      cursor.className = 'cursor';
+      typed.appendChild(cursor);
+
+      let seg = 0, char = 0, current = null;
+
+      function step() {
+        if (seg >= message.length) return;
+        const part = message[seg];
+
+        if (char === 0) {
+          current = document.createElement('span');
+          if (part.cls) current.className = part.cls;
+          typed.insertBefore(current, cursor);
+        }
+
+        current.textContent += part.text[char];
+        char++;
+
+        if (char >= part.text.length) {
+          seg++;
+          char = 0;
+        }
+
+        const delay = 55 + Math.random() * 60;
+        setTimeout(step, delay);
+      }
+
+      step();
+    }
+
+    function spawnHeart() {
+      const h = document.createElement('div');
+      h.className = 'heart';
+      h.textContent = '\u2665';
+      h.style.left = Math.random() * 100 + 'vw';
+      h.style.fontSize = (14 + Math.random() * 26) + 'px';
+      h.style.animationDuration = (5 + Math.random() * 5) + 's';
+      document.body.appendChild(h);
+      setTimeout(() => h.remove(), 11000);
+    }
+
+    yes.addEventListener('click', () => {
+      question.style.display = 'none';
+      no.style.display = 'none';
+      result.style.display = 'block';
+      setTimeout(typeMessage, 600);
+      for (let i = 0; i < 14; i++) setTimeout(spawnHeart, i * 250);
+      setInterval(spawnHeart, 900);
+    });
+  </script>
+</body>
+</html>
